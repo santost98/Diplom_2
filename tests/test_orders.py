@@ -137,9 +137,8 @@ class TestOrders:
             assert "data" in response_data, "В ответе должно быть поле data"
             assert isinstance(response_data["data"], list), "Поле data должно быть списком"
             assert len(response_data["data"]) > 0, "Список ингредиентов не должен быть пустым"
-            
             # Проверяем структуру первого ингредиента
-                ingredient = response_data["data"][0]
-                assert "_id" in ingredient, "У ингредиента должен быть _id"
-                assert "name" in ingredient, "У ингредиента должно быть name"
-                assert "type" in ingredient, "У ингредиента должен быть type" 
+            ingredient = response_data["data"][0]
+            assert "_id" in ingredient, "У ингредиента должен быть _id"
+            assert "name" in ingredient, "У ингредиента должно быть name"
+            assert "type" in ingredient, "У ингредиента должен быть type" 
