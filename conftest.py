@@ -71,3 +71,23 @@ def available_ingredients(api_client):
         if response_data.get("success") and "data" in response_data:
             return response_data["data"]
         return [] 
+
+@pytest.fixture
+def valid_ingredient_ids(available_ingredients):
+    """Фикстура для получения валидных id ингредиентов (минимум два)"""
+    if len(available_ingredients) >= 2:
+        return [available_ingredients[0]["_id"], available_ingredients[1]["_id"]]
+    # Если ингредиентов меньше двух, возвращаем тестовые данные
+    from data.test_data import VALID_ORDER_DATA
+    return VALID_ORDER_DATA["ingredients"]
+
+@pytest.fixture
+def empty_ingredient_ids():
+    """Фикстура для пустого списка ингредиентов"""
+    return []
+
+@pytest.fixture
+def invalid_ingredient_ids():
+    """Фикстура для невалидных id ингредиентов"""
+    from data.test_data import INVALID_ORDER_DATA_WRONG_HASH
+    return INVALID_ORDER_DATA_WRONG_HASH["ingredients"] 

@@ -14,26 +14,15 @@ class TestOrders:
     @allure.feature("Создание заказа")
     @allure.story("Создание заказа с авторизацией")
     @allure.title("Создание заказа авторизованным пользователем с ингредиентами")
-    def test_create_order_with_auth_success(self, authorized_user, available_ingredients):
+    def test_create_order_with_auth_success(self, authorized_user, valid_ingredient_ids):
         """Тест успешного создания заказа авторизованным пользователем"""
         api_client = authorized_user["api_client"]
-        
-        with allure.step("Подготовка данных заказа с валидными ингредиентами"):
-            if available_ingredients:
-                # Берем первые два ингредиента для заказа
-                ingredient_ids = [available_ingredients[0]["_id"], available_ingredients[1]["_id"]]
-                order_data = {"ingredients": ingredient_ids}
-            else:
-                # Если ингредиенты недоступны, используем тестовые данные
-                order_data = VALID_ORDER_DATA
-        
+        order_data = {"ingredients": valid_ingredient_ids}
         with allure.step("Отправка запроса на создание заказа"):
             response = api_client.create_order(order_data)
-        
         with allure.step("Проверка статус кода"):
             assert response.status_code == Config.STATUS_CODES["success"], \
                 f"Ожидался статус {Config.STATUS_CODES['success']}, получен {response.status_code}"
-        
         with allure.step("Проверка тела ответа"):
             response_data = response.json()
             assert response_data["success"] is True, "Поле success должно быть True"
@@ -44,22 +33,14 @@ class TestOrders:
     @allure.feature("Создание заказа")
     @allure.story("Создание заказа без авторизации")
     @allure.title("Создание заказа неавторизованным пользователем")
-    def test_create_order_without_auth(self, api_client, available_ingredients):
+    def test_create_order_without_auth(self, api_client, valid_ingredient_ids):
         """Тест создания заказа без авторизации"""
-        with allure.step("Подготовка данных заказа"):
-            if available_ingredients:
-                ingredient_ids = [available_ingredients[0]["_id"], available_ingredients[1]["_id"]]
-                order_data = {"ingredients": ingredient_ids}
-            else:
-                order_data = VALID_ORDER_DATA
-        
+        order_data = {"ingredients": valid_ingredient_ids}
         with allure.step("Отправка запроса на создание заказа без авторизации"):
             response = api_client.create_order(order_data)
-        
         with allure.step("Проверка статус кода"):
             assert response.status_code == Config.STATUS_CODES["success"], \
                 f"Ожидался статус {Config.STATUS_CODES['success']}, получен {response.status_code}"
-        
         with allure.step("Проверка тела ответа"):
             response_data = response.json()
             assert response_data["success"] is True, "Поле success должно быть True"
@@ -69,17 +50,15 @@ class TestOrders:
     @allure.feature("Создание заказа")
     @allure.story("Создание заказа без ингредиентов")
     @allure.title("Создание заказа с пустым списком ингредиентов")
-    def test_create_order_without_ingredients(self, authorized_user):
+    def test_create_order_without_ingredients(self, authorized_user, empty_ingredient_ids):
         """Тест создания заказа без ингредиентов"""
         api_client = authorized_user["api_client"]
-        
+        order_data = {"ingredients": empty_ingredient_ids}
         with allure.step("Отправка запроса на создание заказа без ингредиентов"):
-            response = api_client.create_order(EMPTY_ORDER_DATA)
-        
+            response = api_client.create_order(order_data)
         with allure.step("Проверка статус кода"):
             assert response.status_code == Config.STATUS_CODES["bad_request"], \
                 f"Ожидался статус {Config.STATUS_CODES['bad_request']}, получен {response.status_code}"
-        
         with allure.step("Проверка тела ответа"):
             response_data = response.json()
             assert response_data["success"] is False, "Поле success должно быть False"
@@ -90,17 +69,15 @@ class TestOrders:
     @allure.feature("Создание заказа")
     @allure.story("Создание заказа с неверными хешами ингредиентов")
     @allure.title("Создание заказа с невалидными ID ингредиентов")
-    def test_create_order_with_invalid_ingredients(self, authorized_user):
+    def test_create_order_with_invalid_ingredients(self, authorized_user, invalid_ingredient_ids):
         """Тест создания заказа с неверными хешами ингредиентов"""
         api_client = authorized_user["api_client"]
-        
+        order_data = {"ingredients": invalid_ingredient_ids}
         with allure.step("Отправка запроса на создание заказа с неверными хешами"):
-            response = api_client.create_order(INVALID_ORDER_DATA_WRONG_HASH)
-        
+            response = api_client.create_order(order_data)
         with allure.step("Проверка статус кода"):
             assert response.status_code == Config.STATUS_CODES["internal_server_error"], \
                 f"Ожидался статус {Config.STATUS_CODES['internal_server_error']}, получен {response.status_code}"
-        
         with allure.step("Проверка типа ответа"):
             assert "html" in response.headers.get("content-type", "").lower(), \
                 "При 500 ошибке должен возвращаться HTML"
@@ -162,7 +139,6 @@ class TestOrders:
             assert len(response_data["data"]) > 0, "Список ингредиентов не должен быть пустым"
             
             # Проверяем структуру первого ингредиента
-            if response_data["data"]:
                 ingredient = response_data["data"][0]
                 assert "_id" in ingredient, "У ингредиента должен быть _id"
                 assert "name" in ingredient, "У ингредиента должно быть name"
